@@ -290,7 +290,7 @@ def ResNet50():
 class VQAModel(nn.Module):
     def __init__(self, vocab_size: int, n_answer: int):
         super().__init__()
-        self.resnet = ResNet18()
+        self.resnet = ResNet50()
         self.text_encoder = nn.Linear(vocab_size, 512)
 
         self.fc = nn.Sequential(
@@ -360,7 +360,7 @@ def eval(model, dataloader, optimizer, criterion, device):
 
 def main():
     # deviceの設定
-    set_seed(42)
+    set_seed(40)
     device = "cuda" if torch.cuda.is_available() else "cpu"
 
     # dataloader / model
@@ -376,11 +376,11 @@ def main():
     test_loader = torch.utils.data.DataLoader(test_dataset, batch_size=1, shuffle=False)
 
     model = VQAModel(vocab_size=len(train_dataset.question2idx)+1, n_answer=len(train_dataset.answer2idx)).to(device)
-    model = nn.DataParallel(model)
-    model = model.to(device)
+    #model = nn.DataParallel(model)
+    #model = model.to(device)
     
     # optimizer / criterion
-    num_epoch = 20
+    num_epoch = 100
     criterion = nn.CrossEntropyLoss()
     optimizer = torch.optim.Adam(model.parameters(), lr=0.001, weight_decay=1e-5)
 
@@ -405,7 +405,7 @@ def main():
     submission = [train_dataset.idx2answer[id] for id in submission]
     submission = np.array(submission)
     torch.save(model.state_dict(), "model.pth")
-    np.save("submission.npy", submission)
+    np.save("submission2.npy", submission)
 
 if __name__ == "__main__":
     main()
