@@ -1,4 +1,5 @@
 import re
+import os
 import random
 import time
 from statistics import mode
@@ -10,7 +11,8 @@ import torch
 import torch.nn as nn
 import torchvision
 from torchvision import transforms
-
+# gpu 無効化
+os.environ["CUDA_VISIBLE_DEVICES"] = "-1"
 
 def set_seed(seed):
     random.seed(seed)
