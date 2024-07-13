@@ -11,8 +11,7 @@ import torch
 import torch.nn as nn
 import torchvision
 from torchvision import transforms
-# gpu 無効化
-os.environ["CUDA_VISIBLE_DEVICES"] = "-1"
+
 
 def set_seed(seed):
     random.seed(seed)
@@ -61,7 +60,6 @@ def process_text(text):
     text = re.sub(r'\s+', ' ', text).strip()
 
     return text
-
 
 # 1. データローダーの作成
 class VQADataset(torch.utils.data.Dataset):
@@ -378,7 +376,9 @@ def main():
     test_loader = torch.utils.data.DataLoader(test_dataset, batch_size=1, shuffle=False)
 
     model = VQAModel(vocab_size=len(train_dataset.question2idx)+1, n_answer=len(train_dataset.answer2idx)).to(device)
-
+    model = nn.DataParallel(model)
+    model = model.to(device)
+    
     # optimizer / criterion
     num_epoch = 20
     criterion = nn.CrossEntropyLoss()
