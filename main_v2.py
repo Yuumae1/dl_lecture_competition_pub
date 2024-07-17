@@ -408,6 +408,7 @@ def main():
 
     # dataloader / model
     transform = transforms.Compose([
+        transforms.RandomRotation(degrees=(-180, 180)),     # 回転
         transforms.Resize((224, 224)),
         transforms.ToTensor()
     ])
