@@ -441,7 +441,7 @@ def main():
     #model = model.to(device)
     
     # optimizer / criterion
-    num_epoch = 20
+    num_epoch = 2
     criterion = nn.CrossEntropyLoss()
     optimizer = torch.optim.Adam(model.parameters(), lr=0.001, weight_decay=1e-5)
 
@@ -456,7 +456,12 @@ def main():
               f"train simple acc: {train_simple_acc:.4f}")
 
     # 提出用ファイルの作成
-    model.eval()
+    total_loss, total_acc, simple_acc, valid_time = model.eval()
+    print(f"【validation】\n"
+        f"valid time: {valid_time:.2f} [s]\n"
+        f"valid loss: {total_loss:.4f}\n"
+        f"valid acc: {total_acc:.4f}\n"
+        f"simple acc: {simple_acc:.4f}")
     submission = []
     for image, question in test_loader:
         image, question = image.to(device), question.to(device)
