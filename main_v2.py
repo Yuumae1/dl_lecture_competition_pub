@@ -12,7 +12,8 @@ import torch.nn as nn
 import torchvision
 from torchvision import transforms
 
-os.environ["CUDA_VISIBLE_DEVICES"] = "-1"
+# GPUを利用しない
+#os.environ["CUDA_VISIBLE_DEVICES"] = "-1"
 
 def set_seed(seed):
     random.seed(seed)
@@ -173,6 +174,42 @@ def VQA_criterion(batch_pred: torch.Tensor, batch_answers: torch.Tensor):
 
     return total_acc / len(batch_pred)
 
+# ZCA白色化の実装
+class ZCAWhitening():
+    def __init__(self, epsilon=1e-4, device="cuda"):  # 計算が重いのでGPUを用いる
+        self.epsilon = epsilon
+        self.device = device
+
+    def fit(self, images):  # 変換行列と平均をデータから計算
+        """
+        Argument
+        --------
+        images : torchvision.datasets.cifar.CIFAR10
+            入力画像（訓練データ全体）．(N, C, H, W)
+        """
+        x = images[0][0].reshape(1, -1)  # 画像（1枚）を1次元化
+        self.mean = torch.zeros([1, x.size()[1]]).to(self.device)  # 平均値を格納するテンソル．xと同じ形状
+        con_matrix = torch.zeros([x.size()[1], x.size()[1]]).to(self.device)
+        for i in range(len(images)):  # 各データについての平均を取る
+            x = images[i][0].reshape(1, -1).to(self.device)
+            self.mean += x / len(images)
+            con_matrix += torch.mm(x.t(), x) / len(images)
+            if i % 1000 == 0:
+                print("{0}/{1}".format(i, len(images)))
+        con_matrix -= torch.mm(self.mean.t(), self.mean)
+        # E: 固有値 V: 固有ベクトルを並べたもの
+        E, V = torch.linalg.eigh(con_matrix)  # 固有値分解
+        self.ZCA_matrix = torch.mm(torch.mm(V, torch.diag((E.squeeze()+self.epsilon)**(-0.5))), V.t())  # A(\Lambda + \epsilon I)^{1/2}A^T
+        print("completed!")
+
+    def __call__(self, x):
+        size = x.size()
+        x = x.reshape(1, -1).to(self.device)
+        x -= self.mean  # x - \bar{x}
+        x = torch.mm(x, self.ZCA_matrix.t())
+        x = x.reshape(tuple(size))
+        x = x.to("cpu")
+        return x
 
 # 3. モデルの実装
 # ResNetを利用できるようにしておく
@@ -375,7 +412,8 @@ def main():
     train_dataset = VQADataset(df_path="./data/train.json", image_dir="./data/train", transform=transform)
     test_dataset = VQADataset(df_path="./data/valid.json", image_dir="./data/valid", transform=transform, answer=False)
     test_dataset.update_dict(train_dataset)
-
+    zca = ZCAWhitening()
+    train_dataset = zca.fit(train_dataset)
     train_loader = torch.utils.data.DataLoader(train_dataset, batch_size=128, shuffle=True)
     test_loader = torch.utils.data.DataLoader(test_dataset, batch_size=1, shuffle=False)
 
