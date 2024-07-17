@@ -80,10 +80,13 @@ class VQADataset(torch.utils.data.Dataset):
 
         # question / answerの辞書を作成
         self.question2idx = {}
-        self.answer2idx = {}
+        #self.answer2idx = {}
         self.idx2question = {}
-        self.idx2answer = {}
-
+        #self.idx2answer = {}
+        self.class_map = load_class_mapping_from_csv(csv_file_path)
+        self.answer2idx = {process_text(k): v for k, v in self.class_map.items()}
+        self.idx2answer = {v: k for k, v in self.answer2idx.items()}
+        
         # 質問文に含まれる単語を辞書に追加
         for question in self.df["question"]:
             question = process_text(question)
@@ -441,7 +444,7 @@ def main():
     #model = model.to(device)
     
     # optimizer / criterion
-    num_epoch = 2
+    num_epoch = 1
     criterion = nn.CrossEntropyLoss()
     optimizer = torch.optim.Adam(model.parameters(), lr=0.001, weight_decay=1e-5)
 
