@@ -183,6 +183,7 @@ def VQA_criterion(batch_pred: torch.Tensor, batch_answers: torch.Tensor):
     return total_acc / len(batch_pred)
 
 # ZCA白色化の実装
+'''
 class ZCAWhitening():
     def __init__(self, epsilon=1e-4, device="cuda"):  # 計算が重いのでGPUを用いる
         self.epsilon = epsilon
@@ -220,7 +221,7 @@ class ZCAWhitening():
         x = x.reshape(tuple(size))
         x = x.to("cpu")
         return x
-
+'''
 # 3. モデルの実装
 # ResNetを利用できるようにしておく
 class BasicBlock(nn.Module):
@@ -425,17 +426,6 @@ def main():
     test_dataset = VQADataset(df_path="./data/valid.json", image_dir="./data/valid", transform=transform, answer=False)
     test_dataset.update_dict(train_dataset)
     
-    # zca whitening
-    #zca = ZCAWhitening(device=device)
-    #train_dataset = zca.fit(train_dataset)
-    #test_dataset = zca.fit(test_dataset)
-    
-    # class mapping の導入
-    #class_mapping = load_class_mapping_from_csv(csv_file_path)
-    #class_mapping_processsed = {process_text(k): v for k, v in class_mapping.items()}
-    #train_dataset.answer2idx = {class_mapping_processsed[answer]: idx for answer, idx in train_dataset.answer2idx.items()}
-    #test_dataset.answer2idx = {class_mapping[answer]: idx for answer, idx in test_dataset.answer2idx.items()}
-    #test_dataset.update_dict(train_dataset)
     train_loader = torch.utils.data.DataLoader(train_dataset, batch_size=128, shuffle=True)
     test_loader = torch.utils.data.DataLoader(test_dataset, batch_size=1, shuffle=False)
 
@@ -444,7 +434,7 @@ def main():
     #model = model.to(device)
     
     # optimizer / criterion
-    num_epoch = 20
+    num_epoch = 1
     criterion = nn.CrossEntropyLoss()
     optimizer = torch.optim.Adam(model.parameters(), lr=0.001, weight_decay=1e-5)
 
@@ -459,7 +449,7 @@ def main():
               f"train simple acc: {train_simple_acc:.4f}")
 
     # 提出用ファイルの作成
-    total_loss, total_acc, simple_acc, valid_time = eval(model)
+    total_loss, total_acc, simple_acc, valid_time = eval(model, test_loader, optimizer, criterion, device)
     print(f"【validation】\n"
         f"valid time: {valid_time:.2f} [s]\n"
         f"valid loss: {total_loss:.4f}\n"
