@@ -414,9 +414,9 @@ def main():
     train_dataset = VQADataset(df_path="./data/train.json", image_dir="./data/train", transform=transform)
     test_dataset = VQADataset(df_path="./data/valid.json", image_dir="./data/valid", transform=transform, answer=False)
     test_dataset.update_dict(train_dataset)
-    zca = ZCAWhitening(device=device)
-    train_dataset = zca.fit(train_dataset)
-    test_dataset = zca.fit(test_dataset)
+    #zca = ZCAWhitening(device=device)
+    #train_dataset = zca.fit(train_dataset)
+    #test_dataset = zca.fit(test_dataset)
     train_loader = torch.utils.data.DataLoader(train_dataset, batch_size=128, shuffle=True)
     test_loader = torch.utils.data.DataLoader(test_dataset, batch_size=1, shuffle=False)
 
