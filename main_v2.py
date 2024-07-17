@@ -178,7 +178,7 @@ def VQA_criterion(batch_pred: torch.Tensor, batch_answers: torch.Tensor):
 class ZCAWhitening():
     def __init__(self, epsilon=1e-4, device="cuda"):  # 計算が重いのでGPUを用いる
         self.epsilon = epsilon
-        self.device = nn.DataParallel(device)
+        self.device = device
 
     def fit(self, images):  # 変換行列と平均をデータから計算
         """
@@ -413,6 +413,7 @@ def main():
     test_dataset = VQADataset(df_path="./data/valid.json", image_dir="./data/valid", transform=transform, answer=False)
     test_dataset.update_dict(train_dataset)
     zca = ZCAWhitening()
+    zca = nn.DataParallel(zca)
     train_dataset = zca.fit(train_dataset)
     train_loader = torch.utils.data.DataLoader(train_dataset, batch_size=128, shuffle=True)
     test_loader = torch.utils.data.DataLoader(test_dataset, batch_size=1, shuffle=False)
