@@ -178,7 +178,7 @@ def VQA_criterion(batch_pred: torch.Tensor, batch_answers: torch.Tensor):
 class ZCAWhitening():
     def __init__(self, epsilon=1e-4, device="cuda"):  # 計算が重いのでGPUを用いる
         self.epsilon = epsilon
-        self.device = device
+        self.device = nn.DataParallel(device)
 
     def fit(self, images):  # 変換行列と平均をデータから計算
         """
