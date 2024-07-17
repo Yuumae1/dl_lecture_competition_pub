@@ -2,5 +2,4 @@ data/train/
 data/valid/
 data/valid.zip
 data/train.zip
-data/*.json
 
