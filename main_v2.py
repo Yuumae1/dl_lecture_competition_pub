@@ -134,9 +134,7 @@ class VQADataset(torch.utils.data.Dataset):
         image = self.transform(image)
         question = np.zeros(len(self.idx2question) + 1)  # 未知語用の要素を追加
         question_words = self.df["question"][idx].split(" ")
-        print(question_words)
         question_words = [process_text(word) for word in question_words]
-        print(question_words)
         for word in question_words:
             try:
                 question[self.question2idx[word]] = 1  # one-hot表現に変換
